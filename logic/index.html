@@ -1,0 +1,397 @@
+<head>
+  <title>From Language to Logic</title>
+  <script src="plugins/main.js"></script>
+  <script src="grader-all.js"></script>
+</head>
+
+<body
+  onload="onLoad('logic', '<a href=mailto:jkc1@stanford.edu>Junshen Kevin Chen<a>', '03/08/2021', 'https://piazza.com/class/kjb5xvzler01qi?cid=560')"
+>
+  <div id="assignmentHeader"></div>
+
+  <p>
+    In this assignment, you will get some hands-on experience with logic. You'll
+    see how logic can be used to represent the meaning of natural language
+    sentences, and how it can be used to solve puzzles and prove theorems. Most
+    of this assignment will be translating English into logical formulas, but in
+    Problem 4, we will delve into the mechanics of logical inference.
+  </p>
+
+  <p>
+    To get started, launch a Python shell and try typing the following commands
+    to add logical expressions into the knowledge base.
+  </p>
+
+  <pre>
+from logic import *
+Rain = Atom('Rain')           # Shortcut
+Wet = Atom('Wet')             # Shortcut
+kb = createResolutionKB()     # Create the knowledge base
+kb.ask(Wet)                   # Prints "I don't know."
+kb.ask(Not(Wet))              # Prints "I don't know."
+kb.tell(Implies(Rain, Wet))   # Prints "I learned something."
+kb.ask(Wet)                   # Prints "I don't know."
+kb.tell(Rain)                 # Prints "I learned something."
+kb.tell(Wet)                  # Prints "I already knew that."
+kb.ask(Wet)                   # Prints "Yes."
+kb.ask(Not(Wet))              # Prints "No."
+kb.tell(Not(Wet))             # Prints "I don't buy that."
+</pre
+  >
+
+  To print out the contents of the knowledge base, you can call
+  <code>kb.dump()</code>. For the example above, you get:
+  <pre>
+==== Knowledge base [3 derivations] ===
+* Or(Not(Rain),Wet)
+* Rain
+- Wet
+</pre
+  >
+  In the output, '*' means the fact was explicitly added by the user, and '-'
+  means that it was inferred. Here is a table that describes how logical
+  formulas are represented in code. Use it as a reference guide:
+
+  <table>
+    <tr>
+      <td><b>Name</b></td>
+      <td><b>Mathematical notation</b></td>
+      <td><b>Code</b></td>
+    </tr>
+    <tr>
+      <td>Constant symbol</td>
+      <td>$\text{stanford}$</td>
+      <td><code>Constant('stanford')</code> (must be lowercase)</td>
+    </tr>
+    <tr>
+      <td>Variable symbol</td>
+      <td>$x$</td>
+      <td><code>Variable('$x')</code> (must be lowercase)</td>
+    </tr>
+    <tr>
+      <td>Atomic formula (atom)</td>
+      <td>$\text{Rain}$<br /><br />$\text{LocatedIn}(\text{stanford}, x)$</td>
+      <td>
+        <code>Atom('Rain')</code> (predicate must start with uppercase)<br /><br /><code
+          >Atom('LocatedIn', 'stanford', '$x')</code
+        >
+        (arguments are symbols)
+      </td>
+    </tr>
+    <tr>
+      <td>Negation</td>
+      <td>$\neg \text{Rain}$</td>
+      <td><code>Not(Atom('Rain'))</code></td>
+    </tr>
+    <tr>
+      <td>Conjunction</td>
+      <td>$\text{Rain} \wedge \text{Snow}$</td>
+      <td><code>And(Atom('Rain'), Atom('Snow'))</code></td>
+    </tr>
+    <tr>
+      <td>Disjunction</td>
+      <td>$\text{Rain} \vee \text{Snow}$</td>
+      <td><code>Or(Atom('Rain'), Atom('Snow'))</code></td>
+    </tr>
+    <tr>
+      <td>Implication</td>
+      <td>$\text{Rain} \to \text{Wet}$</td>
+      <td><code>Implies(Atom('Rain'), Atom('Wet'))</code></td>
+    </tr>
+    <tr>
+      <td>Equivalence</td>
+      <td>
+        $\text{Rain} \leftrightarrow \text{Wet}$ (syntactic sugar for
+        $\text{Rain} \to \text{Wet} \wedge \text{Wet} \to \text{Rain}$)
+      </td>
+      <td><code>Equiv(Atom('Rain'), Atom('Wet'))</code></td>
+    </tr>
+    <tr>
+      <td>Existential quantification</td>
+      <td>$\exists x . \text{LocatedIn}(\text{stanford}, x)$</td>
+      <td><code>Exists('$x', Atom('LocatedIn', 'stanford', '$x'))</code></td>
+    </tr>
+    <tr>
+      <td>Universal quantification</td>
+      <td>$\forall x . \text{MadeOfAtoms}(x)$</td>
+      <td><code>Forall('$x', Atom('MadeOfAtoms', '$x'))</code></td>
+    </tr>
+  </table>
+
+  <p>
+    The operations <code>And</code> and <code>Or</code> only take two arguments.
+    If we want to take a conjunction or disjunction of more than two, use
+    <code>AndList</code> and <code>OrList</code>. For example:
+    <code>AndList([Atom('A'), Atom('B'), Atom('C')])</code> is equivalent to
+    <code>And(And(Atom('A'), Atom('B')), Atom('C'))</code>.
+  </p>
+
+  <!------------------------------------------------------------>
+  <div class="problemTitle">Problem 1: Propositional logic</div>
+
+  <p>
+    Write a propositional logic formula for each of the following English
+    sentences in the given function in <code>submission.py</code>. For example,
+    if the sentence is <i>"If it is raining, it is wet,"</i> then you would
+    write <code>Implies(Atom('Rain'), Atom('Wet'))</code>, which would be
+    $\text{Rain} \to \text{Wet}$ in symbols (see <code>examples.py</code>).
+    Note: Don't forget to return the constructed formula!
+  </p>
+
+  <ol class="problem">
+    <li class="code" id="1a">
+      <i>"If it's summer and we're in California, then it doesn't rain."</i>
+    </li>
+    <li class="code" id="1b">
+      <i>"It's wet if and only if it is raining or the sprinklers are on."</i>
+    </li>
+    <li class="code" id="1c">
+      <i>"Either it's day or night (but not both)."</i>
+    </li>
+  </ol>
+
+  You can run the following command to test each formula:
+  <pre>
+    python grader.py 1a
+    </pre
+  >
+  If your formula is wrong, then the grader will provide a counterexample, which
+  is a model that your formula and the correct formula don't agree on. For
+  example, if you accidentally wrote
+  <code>And(Atom('Rain'), Atom('Wet'))</code> for
+  <i>"If it is raining, it is wet,"</i>, then the grader would output the
+  following:
+  <pre>
+    Your formula (And(Rain,Wet)) says the following model is FALSE, but it should be TRUE:
+    * Rain = False
+    * Wet = True
+    * (other atoms if any) = False
+    </pre
+  >
+  <p>
+    In this model, it's not raining and it is wet, which satisfies the correct
+    formula $\text{Rain} \to \text{Wet}$ (TRUE), but does not satisfy the
+    incorrect formula $\text{Rain} \wedge \text{Wet}$ (FALSE). Use these
+    counterexamples to guide you in the rest of the assignment.
+  </p>
+
+  <!------------------------------------------------------------>
+  <div class="problemTitle">Problem 2: First-order logic</div>
+
+  <p>
+    Write a first-order logic formula for each of the following English
+    sentences in the given function in <code>submission.py</code>. For example,
+    if the sentence is <i>"There is a light that shines,"</i> then you would
+    write
+    <code>Exists('$x', And(Atom('Light', '$x'), Atom('Shines', '$x')))</code>,
+    which would be $\exists x . \text{Light}(x) \wedge \text{Shines}(x)$ in
+    symbols (see <code>examples.py</code>).
+  </p>
+
+  <p>
+    <i>Tips</i>:
+    <ul>
+            <li> You can directly write <code>'$x'</code> instead of <code>Variable('$x')</code> to represent a variable symbol.
+            <li> Python tuples can span multiple lines, which help with
+            readability when you are writing logic expressions (some of them in this
+            homework can get quite large).
+    </ul>
+  </p>
+
+  <p></p>
+
+  <ol class="problem">
+    <li class="code" id="2a">
+      <i>"Every person has a mother."</i>
+    </li>
+    <p>
+      <b>Note: </b> You do NOT have to enforce that the mother is a "person".
+    </p>
+    <li class="code" id="2b">
+      <i>"At least one person has no children."</i>
+    </li>
+    <p>
+      <b>Note: </b> You do NOT have to enforce that the child is a "person".
+    </p>
+    <li class="code" id="2c">
+      Create a formula which defines <code>Father(x,y)</code> in terms of
+      <code>Male(x)</code> and <code>Parent(x,y)</code>.
+    </li>
+
+    <li class="code" id="2d">
+      Create a formula which defines <code>Granddaughter(x,y)</code> in terms of
+      <code>Female(x)</code> and <code>Child(x,y)</code>.
+    </li>
+    <p><b>Note: </b> It is ok for a person to be their own child.</p>
+  </ol>
+
+  <!------------------------------------------------------------>
+  <div class="problemTitle">Problem 3: Liar puzzle</div>
+
+  Someone crashed the server, and accusations are flying. For this problem, we
+  will encode the evidence in first-order logic formulas to find out who crashed
+  the server. You've narrowed it down to four suspects: John, Susan, Mark, and
+  Nicole. You have the following information:
+  <ol>
+    <li>Mark says: "It wasn't me!"</li>
+    <li>John says: "It was Nicole!"</li>
+    <li>Nicole says: "No, it was Susan!"</li>
+    <li>Susan says: "Nicole's a liar."</li>
+    <li>You know that exactly one person is telling the truth.</li>
+    <li>You also know exactly one person crashed the server.</li>
+  </ol>
+  <ol class="problem">
+    <li class="code" id="3a">
+      Fill out <code>liar()</code> to return a list of 6 formulas, one for each
+      of the above facts.
+      <br />
+      The grader is set up such that you could run individual parts
+      <code>3a-0</code> to <code>3a-5</code> to debug each formula only if you
+      implement them <b>in the order specified</b>.
+    </li>
+  </ol>
+
+  You can test your code using the following commands:
+
+  <pre>
+    python grader.py 3a-0
+    python grader.py 3a-1
+    python grader.py 3a-2
+    python grader.py 3a-3
+    python grader.py 3a-4
+    python grader.py 3a-5
+    python grader.py 3a-all  # Tests the conjunction of all the formulas
+    </pre
+  >
+
+  To solve the puzzle and find the answer, <code>tell</code> the formulas to the
+  knowledge base and <code>ask</code> the query
+  <code>CrashedServer('$x')</code>, by running:
+  <pre>
+    python grader.py 3a-run
+    </pre
+  >
+
+  <!------------------------------------------------------------>
+  <div class="problemTitle">Problem 4: Odd and even integers</div>
+
+  <p>
+    In this problem, we will see how to use logic to automatically prove
+    mathematical theorems. We will focus on encoding the theorem and leave the
+    proving part to the logical inference algorithm. Here is the theorem:
+  </p>
+  If the following constraints hold:
+  <ol>
+    <li>
+      Each number $x$ has exactly one successor, which is not equal to $x$.
+    </li>
+    <li>Each number is either odd or even, but not both.</li>
+    <li>The successor of an even number is odd.</li>
+    <li>The successor of an odd number is even.</li>
+    <li>For every number $x$, the successor of $x$ is larger than $x$.</li>
+    <li>
+      Larger is a transitive property: if $x$ is larger than $y$ and $y$ is
+      larger than $z$, then $x$ is larger than $z$.
+    </li>
+  </ol>
+  Then we have the following consequence:
+  <ul>
+    <li>For each number, there is an even number larger than it.</li>
+  </ul>
+
+  <p>
+    Note: in this problem, "larger than" is just an arbitrary relation, and you
+    should not assume it has any prior meaning. In other words, don't assume
+    things like "a number can't be larger than itself" unless explicitly stated.
+  </p>
+
+  <ol class="problem">
+    <li class="code" id="4a">
+      Fill out <code>ints()</code> to construct 6 formulas for each of the
+      constraints. The consequence has been filled out for you (<code
+        >query</code
+      >
+      in the code).
+      <br />
+      The grader is set up such that you could run individual parts
+      <code>4a-0</code> to <code>4a-5</code> to debug each formula only if you
+      implement them <b>in the order specified</b>. You can test your code using
+      the following commands:
+      <pre>
+    python grader.py 4a-0
+    python grader.py 4a-1
+    python grader.py 4a-2
+    python grader.py 4a-3
+    python grader.py 4a-4
+    python grader.py 4a-5
+    python grader.py 4a-all  # Tests the conjunction of all the formulas
+    </pre
+      >
+
+      To finally prove the theorem, <code>tell</code> the formulas to the
+      knowledge base and <code>ask</code> the query by running model checking
+      (on a finite model):
+      <pre>
+    python grader.py 4a-run
+    </pre
+      >
+    </li>
+  </ol>
+
+  <!------------------------------------------------------------>
+  <div class="problemTitle">Problem 5: Semantic parsing (extra credit)</div>
+
+  <p>
+    Semantic parsing is the task of converting natural lanugage utterances into
+    first-order logic formulas. We have created a small set of grammar rules in
+    the code for you in
+    <code>createBaseEnglishGrammar()</code>. In this problem, you will add
+    additional grammar rules to handle a wider variety of sentences.
+    Specifically, create a <code>GrammarRule</code> for each of the following
+    sentence structures.
+  </p>
+
+  <ol class="problem">
+    <li class="code" id="5a">
+      Example: <i>Every person likes some cat.</i> General template:
+      <pre>$Clause &larr; every $Noun $Verb some $Noun</pre>
+    </li>
+    <li class="code" id="5b">
+      Example: <i>There is some cat that every person likes.</i> General
+      template:
+      <pre>$Clause &larr; there is some $Noun that every $Noun $Verb</pre>
+    </li>
+    <li class="code" id="5c">
+      Example:
+      <i>If a person likes a cat then the former feeds the latter.</i> General
+      template:
+      <pre>
+$Clause &larr; if a $Noun $Verb a $Noun then the former $Verb the latter</pre
+      >
+    </li>
+  </ol>
+
+  After implementing these functions, you should be able to try some simple
+  queries using <code>nli.py</code>! For example:
+  <pre>
+    $ python nli.py
+    
+    &gt Every person likes some cat.
+    
+    &gt&gt&gt&gt&gt I learned something.
+    ------------------------------
+    &gt Every cat is a mammal.
+    
+    &gt&gt&gt&gt&gt I learned something.
+    ------------------------------
+    &gt Every person likes some mammal?
+    
+    &gt&gt&gt&gt&gt Yes.
+    </pre
+  >
+
+  <div
+    id="feedback"
+    data-survey-url="https://docs.google.com/forms/d/e/1FAIpQLSfpzi28K7WTtaLhVEQyF4Vap-eu6HLCrL1_lftvFS9-XivpYw/viewform?usp=sf_link"
+  ></div>
+</body>
